@@ -44,7 +44,6 @@ CREATE TABLE bronze.hr_data (
 );
 GO
 
-
 BULK INSERT bronze.hr_data
 FROM 'C:\Users\pc\Documents\GitHub\HR-DataWarehouse-Project\HR-DataWarehouse-Project\data\HRDataset_v14.csv'
 WITH (
