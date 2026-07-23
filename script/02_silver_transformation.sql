@@ -134,7 +134,6 @@ SELECT
     TRY_CAST(TRIM(PositionID) AS INT),
     UPPER(TRIM(Position))
 FROM bronze.hr_data
-WHERE PositionID IS NOT NULL;
 GO
 
 INSERT INTO silver.manager
@@ -146,7 +145,6 @@ SELECT
     TRY_CAST(TRIM(ManagerID) AS INT),
     UPPER(TRIM(ManagerName))
 FROM bronze.hr_data
-WHERE ManagerID IS NOT NULL;
 GO
 
 INSERT INTO silver.department
@@ -158,7 +156,6 @@ SELECT
     TRY_CAST(TRIM(DeptID) AS INT),
     UPPER(TRIM(Department))
 FROM bronze.hr_data
-WHERE DeptID IS NOT NULL;
 GO
 
 INSERT INTO silver.recruitment
@@ -170,7 +167,6 @@ SELECT
     UPPER(TRIM(RecruitmentSource)),
     COALESCE(TRY_CAST(FromDiversityJobFairID AS INT),0)
 FROM bronze.hr_data
-WHERE RecruitmentSource IS NOT NULL;
 GO
 
 INSERT INTO silver.performance
@@ -182,7 +178,6 @@ SELECT
     TRY_CAST(TRIM(PerfScoreID) AS INT),
     UPPER(TRIM(PerformanceScore))
 FROM bronze.hr_data
-WHERE PerfScoreID IS NOT NULL;
 GO
 
 INSERT INTO silver.emp_status
@@ -198,10 +193,9 @@ SELECT
     TRIM(TermReason),
     CAST(Termd AS INT)
 FROM bronze.hr_data
-WHERE EmpStatusID IS NOT NULL;
 GO
 /*==========================
-DML - FACT_HR_snapshot
+DML -HR_snapshot
 ==========================*/
 
 INSERT INTO silver.hr_snapshot
