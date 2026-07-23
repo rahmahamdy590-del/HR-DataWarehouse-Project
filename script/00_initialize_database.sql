@@ -1,0 +1,14 @@
+CREATE DATABASE HR_Project;
+GO
+
+USE HR_Project;
+GO
+
+CREATE SCHEMA bronze;
+GO
+
+CREATE SCHEMA silver;
+GO
+
+CREATE SCHEMA gold;
+GO
