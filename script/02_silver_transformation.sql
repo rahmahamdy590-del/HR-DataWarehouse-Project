@@ -1,6 +1,5 @@
 USE HR_Project;
 GO
-
 DROP TABLE IF EXISTS silver.hr_snapshot;
 DROP TABLE IF EXISTS silver.emp;
 DROP TABLE IF EXISTS silver.position;
@@ -10,11 +9,7 @@ DROP TABLE IF EXISTS silver.recruitment;
 DROP TABLE IF EXISTS silver.performance;
 DROP TABLE IF EXISTS silver.emp_status;
 GO
-
-/*==========================
-DDL
-==========================*/
-
+-----------------DDL
 CREATE TABLE silver.emp
 (
     emp_id INT,
@@ -27,37 +22,31 @@ CREATE TABLE silver.emp
     race_desc VARCHAR(50),
     state VARCHAR(50)
 );
-
 CREATE TABLE silver.position
 (
     position_id INT,
     position VARCHAR(100)
 );
-
 CREATE TABLE silver.manager
 (
     manager_id INT,
     manager_name VARCHAR(100)
 );
-
 CREATE TABLE silver.department
 (
     dept_id INT,
     dept_name VARCHAR(100)
 );
-
 CREATE TABLE silver.recruitment
 (
     RecruitmentSource VARCHAR(100),
     FromDiversityJobFairID INT
 );
-
 CREATE TABLE silver.performance
 (
     performance_id INT,
     performance_score VARCHAR(50)
 );
-
 CREATE TABLE silver.emp_status
 (
     empstatus_id INT,
@@ -65,13 +54,12 @@ CREATE TABLE silver.emp_status
     termreason VARCHAR(255),
     termd BIT
 );
-
 CREATE TABLE silver.hr_snapshot
 (
     salary DECIMAL(18,2),
     absences INT,
     dayslatelast30 INT,
-    engagementsurvey FLOAT,
+    engagementsurvey DECIMAL(5,2),
     empsatisfaction INT,
     empstatus_id INT,
     specialprojectscount INT,
@@ -86,11 +74,7 @@ CREATE TABLE silver.hr_snapshot
     emp_id INT
 );
 GO
-
-/*==========================
-DML
-==========================*/
-
+-------------------DML
 INSERT INTO silver.emp
 (
     emp_id,
@@ -103,7 +87,7 @@ INSERT INTO silver.emp
     race_desc,
     state
 )
-SELECT 
+SELECT DISTINCT
     TRY_CAST(TRIM(EmpID) AS INT),
     CASE
         WHEN CHARINDEX(',', Employee_Name) > 0 THEN
@@ -124,7 +108,6 @@ SELECT
     UPPER(TRIM(State))
 FROM bronze.hr_data;
 GO
-
 INSERT INTO silver.position
 (
     position_id,
@@ -132,21 +115,23 @@ INSERT INTO silver.position
 )
 SELECT
     TRY_CAST(TRIM(PositionID) AS INT),
-    UPPER(TRIM(Position))
+    MAX(UPPER(TRIM(Position)))
 FROM bronze.hr_data
+WHERE TRY_CAST(TRIM(PositionID) AS INT) IS NOT NULL
+GROUP BY TRY_CAST(TRIM(PositionID) AS INT);
 GO
-
 INSERT INTO silver.manager
 (
     manager_id,
     manager_name
 )
 SELECT
-    TRY_CAST(TRIM(ManagerID) AS INT),
-    UPPER(TRIM(ManagerName))
+    TRY_CAST(TRY_CAST(TRIM(ManagerID) AS FLOAT) AS INT),
+    MAX(UPPER(TRIM(ManagerName)))
 FROM bronze.hr_data
+WHERE TRY_CAST(TRY_CAST(TRIM(ManagerID) AS FLOAT) AS INT) IS NOT NULL
+GROUP BY TRY_CAST(TRY_CAST(TRIM(ManagerID) AS FLOAT) AS INT);
 GO
-
 INSERT INTO silver.department
 (
     dept_id,
@@ -154,8 +139,10 @@ INSERT INTO silver.department
 )
 SELECT
     TRY_CAST(TRIM(DeptID) AS INT),
-    UPPER(TRIM(Department))
+    MAX(UPPER(TRIM(Department)))
 FROM bronze.hr_data
+WHERE TRY_CAST(TRIM(DeptID) AS INT) IS NOT NULL
+GROUP BY TRY_CAST(TRIM(DeptID) AS INT);
 GO
 
 INSERT INTO silver.recruitment
@@ -165,8 +152,11 @@ INSERT INTO silver.recruitment
 )
 SELECT
     UPPER(TRIM(RecruitmentSource)),
-    COALESCE(TRY_CAST(FromDiversityJobFairID AS INT),0)
+    MAX(COALESCE(TRY_CAST(FromDiversityJobFairID AS INT),0))
 FROM bronze.hr_data
+WHERE RecruitmentSource IS NOT NULL
+AND TRIM(RecruitmentSource)<>''
+GROUP BY UPPER(TRIM(RecruitmentSource));
 GO
 
 INSERT INTO silver.performance
@@ -176,8 +166,10 @@ INSERT INTO silver.performance
 )
 SELECT
     TRY_CAST(TRIM(PerfScoreID) AS INT),
-    UPPER(TRIM(PerformanceScore))
+    MAX(UPPER(TRIM(PerformanceScore)))
 FROM bronze.hr_data
+WHERE TRY_CAST(TRIM(PerfScoreID) AS INT) IS NOT NULL
+GROUP BY TRY_CAST(TRIM(PerfScoreID) AS INT);
 GO
 
 INSERT INTO silver.emp_status
@@ -189,15 +181,14 @@ INSERT INTO silver.emp_status
 )
 SELECT
     TRY_CAST(TRIM(EmpStatusID) AS INT),
-    UPPER(TRIM(EmploymentStatus)),
-    TRIM(TermReason),
-    CAST(Termd AS INT)
+    MAX(UPPER(TRIM(EmploymentStatus))),
+    MAX(TRIM(TermReason)),
+    CAST(MAX(CAST(Termd AS INT)) AS BIT)
 FROM bronze.hr_data
+WHERE TRY_CAST(TRIM(EmpStatusID) AS INT) IS NOT NULL
+GROUP BY TRY_CAST(TRIM(EmpStatusID) AS INT);
 GO
-/*==========================
-DML -HR_snapshot
-==========================*/
-
+---------------------DML - HR_snapshot
 INSERT INTO silver.hr_snapshot
 (
     salary,
@@ -221,16 +212,20 @@ SELECT
     COALESCE(TRY_CAST(Salary AS DECIMAL(18,2)),0),
     COALESCE(TRY_CAST(Absences AS INT),0),
     COALESCE(TRY_CAST(DaysLateLast30 AS INT),0),
-    COALESCE(TRY_CAST(EngagementSurvey AS FLOAT),0),
+    COALESCE(TRY_CAST(EngagementSurvey AS DECIMAL(5,2)),0),
     COALESCE(TRY_CAST(EmpSatisfaction AS INT),0),
     COALESCE(TRY_CAST(SpecialProjectsCount AS INT),0),
     TRY_CAST(TRIM(EmpStatusID) AS INT),
     TRY_CONVERT(DATE, DateofHire),
     TRY_CONVERT(DATE, DateofTermination),
     TRY_CONVERT(DATE, LastPerformanceReview_Date),
-    UPPER(TRIM(RecruitmentSource)),
+    CASE
+         WHEN RecruitmentSource IS NULL
+             OR TRIM(RecruitmentSource)='' THEN 'UNKNOWN'
+         ELSE UPPER(TRIM(RecruitmentSource))
+    END,
     TRY_CAST(TRIM(PositionID) AS INT),
-    TRY_CAST(TRIM(ManagerID) AS INT),
+    TRY_CAST(TRY_CAST(TRIM(ManagerID) AS FLOAT) AS INT),
     TRY_CAST(TRIM(DeptID) AS INT),
     TRY_CAST(TRIM(PerfScoreID) AS INT),
     TRY_CAST(TRIM(EmpID) AS INT)
