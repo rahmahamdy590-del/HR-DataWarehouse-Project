@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS gold.dim_recruitment;
 DROP TABLE IF EXISTS gold.dim_performance;
 DROP TABLE IF EXISTS gold.dim_emp_status;
 GO
------------DDL - DIMENSIONS (surrogate key = sk_<dimension>, NOT NULL by definition of IDENTITY PKbusiness key   = UNIQUE, so no duplicate surrogate rows for the same source key)
+-----------DDL - DIMENSIONS (surrogate key = sk_<dimension>, NOT NULL by definition of IDENTITY PK; business key = UNIQUE, so no duplicate surrogate rows for the same source key)
 CREATE TABLE gold.dim_emp
 (
     sk_emp          INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
@@ -173,7 +173,7 @@ SELECT DISTINCT
     termd
 FROM silver.emp_status;
 GO
--------DML - FACT_HR_SNAPSHOT(look up each dimension's surrogate key via its business key)
+-------DML - FACT_HR_SNAPSHOT (look up each dimension's surrogate key via its business key)
 INSERT INTO gold.fact_hr_snapshot
 (
     sk_emp,
@@ -218,7 +218,7 @@ LEFT JOIN gold.dim_department  dd  ON dd.dept_id          = s.dept_id
 LEFT JOIN gold.dim_performance dpf ON dpf.performance_id  = s.performance_id
 LEFT JOIN gold.dim_emp_status  des ON des.empstatus_id     = s.empstatus_id
 LEFT JOIN gold.dim_recruitment dr  ON dr.RecruitmentSource = s.RecruitmentSource;
-GO 
+GO
 ---------------VALIDATION
 SELECT
 'Silver HR Snapshot' AS Layer,
@@ -230,11 +230,48 @@ SELECT
 COUNT(*)
 FROM gold.fact_hr_snapshot;
 GO
+
+-- Rows in the fact table missing any surrogate key
 SELECT * FROM gold.fact_hr_snapshot
 WHERE sk_emp IS NULL OR sk_position IS NULL OR sk_department IS NULL
    OR sk_manager IS NULL OR sk_performance IS NULL OR sk_emp_status IS NULL
    OR sk_recruitment IS NULL;
+GO
 
-   SELECT EmpID, Employee_Name, ManagerID, ManagerName, Position
+-- Drill down: raw bronze rows behind any sk_manager gaps found above
+-- (dynamic - no hardcoded IDs, re-runs correctly on any future load)
+SELECT b.EmpID, b.Employee_Name, b.ManagerID, b.ManagerName, b.Position
+FROM bronze.hr_data b
+WHERE TRY_CAST(TRIM(b.EmpID) AS INT) IN (
+    SELECT de.emp_id
+    FROM gold.fact_hr_snapshot f
+    JOIN gold.dim_emp de ON de.sk_emp = f.sk_emp
+    WHERE f.sk_manager IS NULL
+);
+GO
+------------check for null
+SELECT
+    emp_id,
+    manager_id
+FROM silver.hr_snapshot
+WHERE emp_id IN
+(
+    10277,
+    10184,
+    10154,
+    10136,
+    10214,
+    10077,
+    10011,
+    10071
+);
+SELECT *
+FROM silver.manager
+WHERE manager_name = 'WEBSTER BUTLER';
+
+SELECT
+    EmpID,
+    ManagerID,
+    ManagerName
 FROM bronze.hr_data
-WHERE TRY_CAST(TRIM(EmpID) AS INT) IN (277, 184, 154, 136, 214, 77, 11, 71);
+WHERE ManagerName = 'Webster Butler';
