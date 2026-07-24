@@ -151,12 +151,17 @@ INSERT INTO silver.recruitment
     FromDiversityJobFairID
 )
 SELECT
-    UPPER(TRIM(RecruitmentSource)),
+    CASE
+        WHEN RecruitmentSource IS NULL OR TRIM(RecruitmentSource)='' THEN 'UNKNOWN'
+        ELSE UPPER(TRIM(RecruitmentSource))
+    END,
     MAX(COALESCE(TRY_CAST(FromDiversityJobFairID AS INT),0))
 FROM bronze.hr_data
-WHERE RecruitmentSource IS NOT NULL
-AND TRIM(RecruitmentSource)<>''
-GROUP BY UPPER(TRIM(RecruitmentSource));
+GROUP BY 
+    CASE
+        WHEN RecruitmentSource IS NULL OR TRIM(RecruitmentSource)='' THEN 'UNKNOWN'
+        ELSE UPPER(TRIM(RecruitmentSource))
+    END;
 GO
 
 INSERT INTO silver.performance
