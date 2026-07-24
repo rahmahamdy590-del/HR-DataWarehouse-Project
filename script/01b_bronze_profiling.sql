@@ -11,13 +11,13 @@ SELECT
     STUFF((
         SELECT DISTINCT ', ' + TRIM(EmpID)
         FROM bronze.hr_data
-        GROUP BY EmpID
+        GROUP BY TRIM(EmpID)
         HAVING COUNT(*) > 1
         FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,2,'') AS [Duplicate_Keys]
 FROM (
-    SELECT EmpID
+    SELECT TRIM(EmpID) AS EmpID
     FROM bronze.hr_data
-    GROUP BY EmpID
+    GROUP BY TRIM(EmpID)
     HAVING COUNT(*)>1
 ) D;
 GO
@@ -148,6 +148,10 @@ GO
 
 /*=========================================================
 12. Invalid ManagerID (Orphan Records)
+-- FIX: ManagerID/EmpID may be stored as text with a decimal point
+-- (e.g. "1.0"), which TRY_CAST(... AS INT) directly rejects and
+-- returns NULL for. Casting ManagerID through FLOAT first, and
+-- TRIM-ing EmpID before casting, keeps this join reliable.
 =========================================================*/
 SELECT
 'hr_data' AS [Table],
@@ -157,14 +161,14 @@ STUFF((
 SELECT DISTINCT ', '+TRIM(e2.ManagerID)
 FROM bronze.hr_data e2
 LEFT JOIN bronze.hr_data m
-ON TRY_CAST(e2.ManagerID AS INT)=TRY_CAST(m.EmpID AS INT)
+ON TRY_CAST(TRY_CAST(e2.ManagerID AS FLOAT) AS INT) = TRY_CAST(TRIM(m.EmpID) AS INT)
 WHERE e2.ManagerID IS NOT NULL
 AND TRIM(e2.ManagerID)<>''
 AND m.EmpID IS NULL
 FOR XML PATH(''),TYPE).value('.','NVARCHAR(MAX)'),1,2,'') AS [Missing_ManagerIDs]
 FROM bronze.hr_data e
 LEFT JOIN bronze.hr_data m
-ON TRY_CAST(e.ManagerID AS INT)=TRY_CAST(m.EmpID AS INT)
+ON TRY_CAST(TRY_CAST(e.ManagerID AS FLOAT) AS INT) = TRY_CAST(TRIM(m.EmpID) AS INT)
 WHERE e.ManagerID IS NOT NULL
 AND TRIM(e.ManagerID)<>''
 AND m.EmpID IS NULL;
