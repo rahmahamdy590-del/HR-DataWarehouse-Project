@@ -11,9 +11,9 @@ DROP TABLE IF EXISTS silver.emp_status;
 GO
 -----------------DDL
 CREATE TABLE silver.emp
-(
-    emp_id INT,
-    emp_name VARCHAR(100),
+(   emp_id INT PRIMARY KEY,
+    empstatus_id INT NOT NULL,
+    emp_name VARCHAR(100) NOT NULL,
     sex VARCHAR(20),
     dob DATE,
     marital_desc VARCHAR(50),
@@ -24,44 +24,44 @@ CREATE TABLE silver.emp
 );
 CREATE TABLE silver.position
 (
-    position_id INT,
-    position VARCHAR(100)
+    position_id INT PRIMARY KEY,
+    position VARCHAR(100),
+    dept_id INT NOT NULL
 );
 CREATE TABLE silver.manager
 (
-    manager_id INT,
+    manager_id INT PRIMARY KEY,
     manager_name VARCHAR(100)
 );
 CREATE TABLE silver.department
 (
-    dept_id INT,
-    dept_name VARCHAR(100)
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(100) NOT NULL
 );
 CREATE TABLE silver.recruitment
 (
-    RecruitmentSource VARCHAR(100),
+    RecruitmentSource VARCHAR(100) PRIMARY KEY,
     FromDiversityJobFairID INT
 );
 CREATE TABLE silver.performance
 (
-    performance_id INT,
+    performance_id INT PRIMARY KEY,
     performance_score VARCHAR(50)
 );
 CREATE TABLE silver.emp_status
 (
-    empstatus_id INT,
+    empstatus_id INT PRIMARY KEY,
     emp_status VARCHAR(100),
     termreason VARCHAR(255),
     termd BIT
 );
 CREATE TABLE silver.hr_snapshot
 (
-    salary DECIMAL(18,2),
-    absences INT,
-    dayslatelast30 INT,
-    engagementsurvey DECIMAL(5,2),
-    empsatisfaction INT,
-    empstatus_id INT,
+    salary DECIMAL(18,2) CHECK(salary>=0),
+    absences INT CHECK(absences>=0),
+    dayslatelast30 INT CHECK(dayslatelast30>=0),
+    engagementsurvey DECIMAL(5,2) CHECK(engagementsurvey BETWEEN 0 AND 5),
+    empsatisfaction INT CHECK(empsatisfaction BETWEEN 1 AND 5),
     specialprojectscount INT,
     date_hiring DATE,
     date_termination DATE,
@@ -69,7 +69,6 @@ CREATE TABLE silver.hr_snapshot
     RecruitmentSource VARCHAR(100),
     position_id INT,
     manager_id INT,
-    dept_id INT,
     performance_id INT,
     emp_id INT
 );
@@ -78,6 +77,7 @@ GO
 INSERT INTO silver.emp
 (
     emp_id,
+    empstatus_id,
     emp_name,
     sex,
     dob,
@@ -89,6 +89,7 @@ INSERT INTO silver.emp
 )
 SELECT DISTINCT
     TRY_CAST(TRIM(EmpID) AS INT),
+    TRY_CAST(TRIM(EmpStatusID) AS INT),
     CASE
         WHEN CHARINDEX(',', Employee_Name) > 0 THEN
             UPPER(
@@ -111,11 +112,13 @@ GO
 INSERT INTO silver.position
 (
     position_id,
-    position
+    position,
+    dept_id
 )
 SELECT
-    TRY_CAST(TRIM(PositionID) AS INT),
-    MAX(UPPER(TRIM(Position)))
+TRY_CAST(TRIM(PositionID) AS INT),
+MAX(UPPER(TRIM(Position))),
+MAX(TRY_CAST(TRIM(DeptID) AS INT))
 FROM bronze.hr_data
 WHERE TRY_CAST(TRIM(PositionID) AS INT) IS NOT NULL
 GROUP BY TRY_CAST(TRIM(PositionID) AS INT);
@@ -144,7 +147,6 @@ FROM bronze.hr_data
 WHERE TRY_CAST(TRIM(DeptID) AS INT) IS NOT NULL
 GROUP BY TRY_CAST(TRIM(DeptID) AS INT);
 GO
-
 INSERT INTO silver.recruitment
 (
     RecruitmentSource,
@@ -163,7 +165,6 @@ GROUP BY
         ELSE UPPER(TRIM(RecruitmentSource))
     END;
 GO
-
 INSERT INTO silver.performance
 (
     performance_id,
@@ -176,7 +177,6 @@ FROM bronze.hr_data
 WHERE TRY_CAST(TRIM(PerfScoreID) AS INT) IS NOT NULL
 GROUP BY TRY_CAST(TRIM(PerfScoreID) AS INT);
 GO
-
 INSERT INTO silver.emp_status
 (
     empstatus_id,
@@ -186,7 +186,12 @@ INSERT INTO silver.emp_status
 )
 SELECT
     TRY_CAST(TRIM(EmpStatusID) AS INT),
-    MAX(UPPER(TRIM(EmploymentStatus))),
+   CASE
+    WHEN TRY_CAST(TRIM(EmpStatusID) AS INT) IN (1,2,3) THEN 'ACTIVE'
+    WHEN TRY_CAST(TRIM(EmpStatusID) AS INT) = 4 THEN 'TERMINATED FOR CAUSE'
+    WHEN TRY_CAST(TRIM(EmpStatusID) AS INT) = 5 THEN 'VOLUNTARILY TERMINATED'
+    ELSE MAX(UPPER(TRIM(EmploymentStatus)))
+END,
     MAX(TRIM(TermReason)),
     CAST(MAX(CAST(Termd AS INT)) AS BIT)
 FROM bronze.hr_data
@@ -202,14 +207,12 @@ INSERT INTO silver.hr_snapshot
     engagementsurvey,
     empsatisfaction,
     specialprojectscount,
-    empstatus_id,
     date_hiring,
     date_termination,
     LastPerformanceReview_Date,
     RecruitmentSource,
     position_id,
     manager_id,
-    dept_id,
     performance_id,
     emp_id
 )
@@ -220,7 +223,6 @@ SELECT
     COALESCE(TRY_CAST(EngagementSurvey AS DECIMAL(5,2)),0),
     COALESCE(TRY_CAST(EmpSatisfaction AS INT),0),
     COALESCE(TRY_CAST(SpecialProjectsCount AS INT),0),
-    TRY_CAST(TRIM(EmpStatusID) AS INT),
     TRY_CONVERT(DATE, DateofHire),
     TRY_CONVERT(DATE, DateofTermination),
     TRY_CONVERT(DATE, LastPerformanceReview_Date),
@@ -231,7 +233,6 @@ SELECT
     END,
     TRY_CAST(TRIM(PositionID) AS INT),
     TRY_CAST(TRY_CAST(TRIM(ManagerID) AS FLOAT) AS INT),
-    TRY_CAST(TRIM(DeptID) AS INT),
     TRY_CAST(TRIM(PerfScoreID) AS INT),
     TRY_CAST(TRIM(EmpID) AS INT)
 FROM bronze.hr_data;
