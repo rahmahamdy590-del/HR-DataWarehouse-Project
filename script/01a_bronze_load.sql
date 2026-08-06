@@ -50,8 +50,8 @@ WITH (
     FORMAT = 'CSV',
     FIRSTROW = 2,
     FIELDQUOTE = '"',
-    FIELDTERMINATOR = ',',
     ROWTERMINATOR = '0x0d0a',   
+    FIELDTERMINATOR = ',',   
     CODEPAGE = '65001',         
     TABLOCK
 );
