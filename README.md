@@ -190,18 +190,19 @@ project root/
 │   └── 04_sql_agent_job.sql
 │
 ├── docs/
-│   ├── architecture.jpeg
-│   ├── data_flow.jpeg
-│   ├── star_schema.jpeg
+│   ├── Architectural Diagram.jpg
+│   ├── Data Flow.jpg
+│   ├── Data Model (Star Schema).jpeg
+│   ├── ELT Pipeline.png
 │   └── HR_DataWarehouse_Technical_Documentation.docx
 │
 └── power bi/
     ├── HR_Analysis_Dashboard_project.pbix
-    ├── pbi_model_view.jpeg
-    ├── dashboard_1.png
-    ├── dashboard_2.png
-    ├── dashboard_3.png
-    └── dashboard_4.png
+    ├── Data Model.png
+    ├── Dashboard1.png
+    ├── Dashboard2.png
+    ├── Dashboard3.png
+    └── Dashboard4.png
 ```
 
 ### Folder Purpose
@@ -210,7 +211,7 @@ project root/
 |---|---|
 | `data/` | Raw CSV source and source notes |
 | `scripts/` | All T-SQL scripts in required execution order |
-| `docs/` | Architecture, lineage, and star-schema documentation |
+| `docs/` | Architecture, lineage, ELT pipeline, and star-schema documentation |
 | `power bi/` | Power BI `.pbix` file, model screenshot, and dashboard screenshots |
 
 ---
@@ -444,8 +445,6 @@ and joined to each dimension view.
 
 ## 🖼️ Project Architecture & Visuals
 
-> **GitHub image paths:** All image filenames and folder names below match the repository exactly, including capitalization, spaces, and file extensions.
-
 ### High-Level Architecture
 
 ![High-Level Architecture](docs/Architectural%20Diagram.jpg)
@@ -453,6 +452,10 @@ and joined to each dimension view.
 ### Data Flow / Data Lineage
 
 ![Data Flow](docs/Data%20Flow.jpg)
+
+### ELT Pipeline
+
+![ELT Pipeline](docs/ELT%20Pipeline.png)
 
 ### Star Schema
 
