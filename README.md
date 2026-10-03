@@ -448,19 +448,19 @@ and joined to each dimension view.
 
 ### High-Level Architecture
 
-![High-Level Architecture](docs/Architectural Diagram.jpg)
+![High-Level Architecture](docs/Architectural%20Diagram.jpg)
 
 ### Data Flow / Data Lineage
 
-![Data Flow](docs/Data Flow.jpg)
+![Data Flow](docs/Data%20Flow.jpg)
 
 ### Star Schema
 
-![HR Data Warehouse Star Schema](docs/Data Model (Star Schema).jpeg)
+![HR Data Warehouse Star Schema](docs/Data%20Model%20%28Star%20Schema%29.jpeg)
 
 ### Power BI Data Model
 
-![Power BI Model](power%20bi/Data Model.png)
+![Power BI Model](power%20bi/Data%20Model.png)
 
 # 📊 Power BI Dashboard
 
