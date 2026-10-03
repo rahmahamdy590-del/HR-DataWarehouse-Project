@@ -444,23 +444,23 @@ and joined to each dimension view.
 
 ## 🖼️ Project Architecture & Visuals
 
-> **GitHub image paths:** All image filenames and folder names below match the repository structure exactly. The space in `power bi/` is URL-encoded as `%20`, and filenames use the exact capitalization shown in the repository.
+> **GitHub image paths:** All image filenames and folder names below match the repository exactly, including capitalization, spaces, and file extensions.
 
 ### High-Level Architecture
 
-![High-Level Architecture](docs/architecture.jpeg)
+![High-Level Architecture](docs/Architectural Diagram.jpg)
 
 ### Data Flow / Data Lineage
 
-![Data Flow](docs/data_flow.jpeg)
+![Data Flow](docs/Data Flow.jpg)
 
 ### Star Schema
 
-![HR Data Warehouse Star Schema](docs/star_schema.jpeg)
+![HR Data Warehouse Star Schema](docs/Data Model (Star Schema).jpeg)
 
 ### Power BI Data Model
 
-![Power BI Model](power%20bi/pbi_model_view.jpeg)
+![Power BI Model](power%20bi/Data Model.png)
 
 # 📊 Power BI Dashboard
 
@@ -477,19 +477,19 @@ The report contains **4 pages** and connects to the Gold layer only, using **Imp
 
 ### 1. Workforce
 
-![Workforce Dashboard](power%20bi/dashboard_1.png)
+![Workforce Dashboard](power%20bi/Dashboard1.png)
 
 ### 2. Turnover & Retention
 
-![Turnover & Retention Dashboard](power%20bi/dashboard_2.png)
+![Turnover & Retention Dashboard](power%20bi/Dashboard2.png)
 
 ### 3. Recruitment & Hiring
 
-![Recruitment & Hiring Dashboard](power%20bi/dashboard_3.png)
+![Recruitment & Hiring Dashboard](power%20bi/Dashboard3.png)
 
 ### 4. Organization Insights
 
-![Organization Insights Dashboard](power%20bi/dashboard_4.png)
+![Organization Insights Dashboard](power%20bi/Dashboard4.png)
 
 ### Power BI Date Modeling
 
