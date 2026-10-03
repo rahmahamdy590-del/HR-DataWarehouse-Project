@@ -1,3 +1,5 @@
+SET QUOTED_IDENTIFIER ON;
+GO
 USE HR_Project;
 GO
 
